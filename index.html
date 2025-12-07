@@ -1,50 +1,36 @@
 <!DOCTYPE html>
 <html lang="km" class="dark">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script> tailwind.config = { darkMode: 'class' } </script>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=Poppins:wght@400;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;500;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
-        body {
-            font-family: 'Kantumruy Pro', sans-serif;
-        }
-
-        .font-poppins {
-            font-family: 'Poppins', sans-serif;
-        }
-
-        ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 10px;
-        }
-
+        body { font-family: 'Kantumruy Pro', sans-serif; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        
         .glass {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+        
+        /* Toggle Checkbox Style */
+        .toggle-checkbox:checked { right: 0; border-color: #10b981; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
     </style>
 </head>
-
 <body class="bg-[#0f172a] text-slate-100 min-h-screen pb-10">
 
     <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
@@ -55,20 +41,28 @@
     <nav class="glass sticky top-0 z-50 px-4 py-3 md:px-6 md:py-4 border-b border-slate-800/50">
         <div class="container mx-auto flex justify-between items-center max-w-5xl">
             <div class="flex items-center gap-3">
-                <div
-                    class="bg-gradient-to-br from-indigo-500 to-blue-600 text-white w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center shadow-lg">
+                <div class="bg-gradient-to-br from-indigo-500 to-blue-600 text-white w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center shadow-lg">
                     <i class="fa-solid fa-user-pen text-sm md:text-lg"></i>
                 </div>
                 <div>
                     <h1 class="font-bold text-base md:text-xl tracking-tight text-white">Admin Edit</h1>
                 </div>
             </div>
+            
+            <div class="flex gap-2">
+                <button onclick="exportToImage()" class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-700 transition flex items-center justify-center" title="Download Image">
+                    <i class="fa-solid fa-camera"></i>
+                </button>
+                <button onclick="exportToPDF()" class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-red-400 hover:bg-slate-700 transition flex items-center justify-center" title="Download PDF">
+                    <i class="fa-solid fa-file-pdf"></i>
+                </button>
+            </div>
         </div>
     </nav>
 
-    <div class="container mx-auto px-4 py-6 max-w-5xl">
-
-        <div class="glass rounded-2xl p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl">
+    <div id="captureArea" class="container mx-auto px-4 py-6 max-w-5xl">
+        
+        <div class="glass rounded-2xl p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl" data-html2canvas-ignore="true">
             <div class="flex items-center gap-3 w-full md:w-auto">
                 <div class="bg-slate-800 p-2 rounded-lg text-indigo-400">
                     <i class="fa-regular fa-calendar-days"></i>
@@ -76,46 +70,51 @@
                 <div class="flex flex-col">
                     <span class="text-[10px] text-slate-400 uppercase">កែប្រែថ្ងៃទី</span>
                     <div class="flex items-center gap-2">
-                        <select id="daySelector" onchange="loadReport()"
-                            class="bg-slate-800 border border-slate-700 text-white text-sm rounded-md px-2 py-0.5 outline-none font-poppins cursor-pointer">
-                        </select>
+                        <select id="daySelector" onchange="loadReport()" class="bg-slate-800 border border-slate-700 text-white text-sm rounded-md px-2 py-0.5 outline-none font-poppins cursor-pointer">
+                            </select>
                     </div>
                 </div>
             </div>
-
-            <button onclick="loadReport()"
-                class="w-full md:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-sm font-medium active:scale-95">
+            <button onclick="loadReport()" class="w-full md:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-sm font-medium active:scale-95">
                 <i class="fa-solid fa-rotate"></i> Refresh
             </button>
         </div>
 
         <div class="grid grid-cols-2 gap-3 md:gap-6 mb-8">
-            <div
-                class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 p-4 shadow-lg">
+            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 p-4 shadow-lg">
                 <p class="text-slate-400 text-xs md:text-sm font-medium uppercase">បុគ្គលិកសរុប</p>
                 <h3 class="text-2xl md:text-4xl font-bold mt-1 font-poppins text-white" id="totalStaff">0</h3>
             </div>
-            <div
-                class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 p-4 shadow-lg">
+            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 p-4 shadow-lg">
                 <p class="text-slate-400 text-xs md:text-sm font-medium uppercase">អ្នក OT សរុប</p>
                 <h3 class="text-2xl md:text-4xl font-bold mt-1 font-poppins text-emerald-400" id="presentCount">0</h3>
             </div>
         </div>
 
         <div class="glass rounded-2xl overflow-hidden shadow-xl">
-            <div class="p-4 border-b border-slate-700/50 flex justify-between items-center gap-4 bg-slate-800/30">
-                <h3 class="font-bold text-base text-white flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-indigo-400"></i> បញ្ជីឈ្មោះ
-                </h3>
-                <div class="relative w-40 md:w-64">
-                    <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-500 text-xs"></i>
-                    <input type="text" id="searchBox" placeholder="ស្វែងរក..."
-                        class="w-full bg-slate-900/80 border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs md:text-sm text-white focus:ring-1 focus:ring-indigo-500">
+            <div class="p-4 border-b border-slate-700/50 flex flex-col gap-4 bg-slate-800/30">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                    <h3 class="font-bold text-base text-white flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-indigo-400"></i> បញ្ជីឈ្មោះ
+                    </h3>
+                    
+                    <div class="flex items-center gap-4 w-full md:w-auto" data-html2canvas-ignore="true">
+                        <label class="flex items-center cursor-pointer gap-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg hover:bg-slate-700 transition">
+                            <span class="text-xs text-slate-300">បង្ហាញតែ OT</span>
+                            <div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" id="showOTOnly" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 appearance-none cursor-pointer border-slate-500 transition-all duration-300" onchange="applyFilters()"/>
+                                <label for="showOTOnly" class="toggle-label block overflow-hidden h-4 rounded-full bg-slate-600 cursor-pointer"></label>
+                            </div>
+                        </label>
+                        <div class="relative flex-1 md:w-64">
+                            <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                            <input type="text" id="searchBox" placeholder="ស្វែងរក..." oninput="applyFilters()" class="w-full bg-slate-900/80 border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs md:text-sm text-white focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full">
+            
+            <div class="overflow-x-auto bg-[#0f172a]"> <table class="w-full">
                     <thead class="bg-slate-900/50 border-b border-slate-700/50">
                         <tr>
                             <th class="py-3 px-4 text-left text-xs font-bold text-slate-400">#</th>
@@ -127,21 +126,22 @@
                     <tbody id="tableBody" class="divide-y divide-slate-800/50"></tbody>
                 </table>
             </div>
-            <div id="loading" class="hidden py-10 text-center">
-                <div class="w-6 h-6 border-2 border-slate-600 border-t-indigo-500 rounded-full animate-spin mx-auto">
-                </div>
-            </div>
+            <div id="loading" class="hidden py-10 text-center"><div class="w-6 h-6 border-2 border-slate-600 border-t-indigo-500 rounded-full animate-spin mx-auto"></div></div>
+            <div id="noResult" class="hidden py-10 text-center text-slate-500 text-sm">រកមិនឃើញទិន្នន័យ</div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // 🔥 សូមយក LINK DEPLOY ថ្មី មកដាក់នៅទីនេះ 🔥
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzFOoxgNjviWxiLx1Z3MF-jj9eR2Ai_4Gckp-mQufYD2OwvVIzEAkmcv2kYksKjcpTG/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzFOoxgNjviWxiLx1Z3MF-jj9eR2Ai_4Gckp-mQufYD2OwvVIzEAkmcv2kYksKjcpTG/exec"; // ដាក់ Link របស់អ្នក
 
         const daySelector = document.getElementById('daySelector');
         const tableBody = document.getElementById('tableBody');
         const loading = document.getElementById('loading');
+        const noResult = document.getElementById('noResult');
+        const showOTOnlyCheckbox = document.getElementById('showOTOnly');
+        const searchBox = document.getElementById('searchBox');
+        
         let allData = [];
 
         function initDateSelector() {
@@ -159,13 +159,20 @@
             const day = daySelector.value;
             loading.classList.remove('hidden');
             tableBody.innerHTML = '';
-
+            noResult.classList.add('hidden');
+            
             try {
-                // Fetch using CORS-safe method (text/plain)
                 const response = await fetch(`${WEB_APP_URL}?action=report&day=${day}`);
                 const data = await response.json();
                 allData = data;
-                renderTable(data);
+                
+                const total = allData.length;
+                const presentCount = allData.filter(item => item.status === 'T').length;
+                document.getElementById('totalStaff').innerText = total;
+                document.getElementById('presentCount').innerText = presentCount;
+
+                applyFilters();
+
             } catch (error) {
                 console.error(error);
                 Swal.fire({ toast: true, position: 'top', icon: 'error', title: 'បរាជ័យក្នុងការទាញទិន្នន័យ', showConfirmButton: false, timer: 2000 });
@@ -174,19 +181,28 @@
             }
         }
 
+        function applyFilters() {
+            const term = searchBox.value.toLowerCase();
+            const showOTOnly = showOTOnlyCheckbox.checked;
+
+            const filteredData = allData.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(term);
+                const matchesOT = showOTOnly ? item.status === 'T' : true; 
+                return matchesSearch && matchesOT;
+            });
+
+            renderTable(filteredData);
+        }
+
         function renderTable(data) {
-            const total = data.length;
-            const presentCount = data.filter(item => item.status === 'T').length;
-            document.getElementById('totalStaff').innerText = total;
-            document.getElementById('presentCount').innerText = presentCount;
-
             tableBody.innerHTML = '';
-
+            if(data.length === 0) { noResult.classList.remove('hidden'); return; } else { noResult.classList.add('hidden'); }
+            
             data.forEach((item, index) => {
                 const isPresent = item.status === 'T';
                 const row = document.createElement('tr');
                 row.className = "hover:bg-slate-800/50 transition duration-200 group";
-
+                
                 row.innerHTML = `
                     <td class="py-3 px-4 text-slate-500 font-poppins text-xs">${index + 1}</td>
                     <td class="py-3 px-4 font-semibold text-slate-200 text-sm">${item.name}</td>
@@ -196,7 +212,7 @@
                          </span>
                     </td>
                     <td class="py-3 px-4 text-right flex justify-end">
-                        <label class="relative inline-flex items-center cursor-pointer">
+                        <label class="relative inline-flex items-center cursor-pointer" data-html2canvas-ignore="true">
                             <input type="checkbox" class="sr-only peer" 
                                 onchange="toggleAttendance(this, ${item.row}, '${item.name}')" 
                                 ${isPresent ? 'checked' : ''}>
@@ -205,18 +221,18 @@
                                 ${isPresent ? 'OT' : 'Off'}
                             </span>
                         </label>
+                        <span class="hidden export-status text-xs font-bold ${isPresent ? 'text-emerald-400' : 'text-slate-500'}">${isPresent ? 'OT' : 'Absent'}</span>
                     </td>
                 `;
                 tableBody.appendChild(row);
             });
         }
 
-        // 🔥 FIX: ប្រើ text/plain ដើម្បីដោះស្រាយ CORS Error
+        // 🔥 FIX: CORS text/plain
         async function toggleAttendance(checkbox, row, name) {
             const day = daySelector.value;
             const status = checkbox.checked;
             const labelSpan = checkbox.parentElement.querySelector('span');
-
             labelSpan.innerText = '...';
             labelSpan.className = "ml-2 text-xs font-medium text-yellow-400 w-12 text-center";
 
@@ -224,52 +240,78 @@
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
                     redirect: "follow",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" }, // Key Fix!
-                    body: JSON.stringify({
-                        action: 'update',
-                        row: row,
-                        day: day,
-                        status: status
-                    })
+                    headers: { "Content-Type": "text/plain;charset=utf-8" }, 
+                    body: JSON.stringify({ action: 'update', row: row, day: day, status: status })
                 });
 
                 if (!response.ok) throw new Error("Network Error");
-
                 const result = await response.json();
 
                 if (result.status === 'success') {
                     labelSpan.innerText = status ? 'OT' : 'Off';
                     labelSpan.className = `ml-2 text-xs font-medium w-12 text-center ${status ? 'text-emerald-400' : 'text-gray-400'}`;
-
-                    // Update Stats
-                    const countEl = document.getElementById('presentCount');
-                    let current = parseInt(countEl.innerText);
-                    countEl.innerText = status ? current + 1 : current - 1;
-
-                    // Update Memory
-                    const item = allData.find(d => d.row === row);
-                    if (item) item.status = status ? 'T' : '';
-                } else {
-                    throw new Error("Update Failed");
-                }
+                    const itemIndex = allData.findIndex(d => d.row === row);
+                    if(itemIndex !== -1) {
+                        allData[itemIndex].status = status ? 'T' : '';
+                        const presentCount = allData.filter(item => item.status === 'T').length;
+                        document.getElementById('presentCount').innerText = presentCount;
+                        applyFilters();
+                    }
+                } else { throw new Error("Update Failed"); }
             } catch (error) {
                 console.error(error);
                 checkbox.checked = !status;
                 labelSpan.innerText = "Error";
-                labelSpan.className = "ml-2 text-xs font-medium text-red-400 w-12 text-center";
                 Swal.fire({ toast: true, position: 'top', icon: 'error', title: 'បរាជ័យ', showConfirmButton: false, timer: 2000 });
             }
         }
 
-        document.getElementById('searchBox').addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = allData.filter(item => item.name.toLowerCase().includes(term));
-            renderTable(filtered);
-        });
+        // 🔥 Export Logic
+        function exportToImage() {
+            prepareExport(true);
+            const element = document.getElementById("captureArea");
+            html2canvas(element, { backgroundColor: "#0f172a" }).then(canvas => {
+                const link = document.createElement("a");
+                link.download = `Attendance_Day_${daySelector.value}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+                prepareExport(false);
+            });
+        }
+
+        function exportToPDF() {
+            prepareExport(true);
+            const element = document.getElementById("captureArea");
+            const { jsPDF } = window.jspdf;
+            
+            html2canvas(element, { backgroundColor: "#0f172a", scale: 2 }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const imgWidth = 210; 
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                pdf.save(`Attendance_Day_${daySelector.value}.pdf`);
+                prepareExport(false);
+            });
+        }
+
+        // Helper to hide toggles and show text for export
+        function prepareExport(isExporting) {
+            const toggles = document.querySelectorAll('label[data-html2canvas-ignore]'); // This attribute doesn't always work on deep nest, so we use CSS class
+            const statuses = document.querySelectorAll('.export-status');
+            
+            if (isExporting) {
+                document.querySelectorAll('label.relative').forEach(el => el.classList.add('hidden'));
+                statuses.forEach(el => el.classList.remove('hidden'));
+            } else {
+                document.querySelectorAll('label.relative').forEach(el => el.classList.remove('hidden'));
+                statuses.forEach(el => el.classList.add('hidden'));
+            }
+        }
 
         initDateSelector();
         loadReport();
     </script>
 </body>
-
 </html>
